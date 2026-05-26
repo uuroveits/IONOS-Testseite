@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meine neue Webseite</title>
+  <meta name="description" content="Eine einfache, moderne Startseite mit HTML und CSS.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1>Meine neue Webseite</h1>
+      <p class="subtitle">Schnell gestartet mit HTML und CSS</p>
+      <a class="button" href="#kontakt">Kontakt</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <h2>Willkommen</h2>
+        <p>
+          Das ist deine erste Seite. Du kannst Texte, Farben und Inhalte jederzeit
+          anpassen und Schritt fuer Schritt erweitern.
+        </p>
+      </div>
+    </section>
+
+    <section class="section alt">
+      <div class="container">
+        <h2>Ueber uns</h2>
+        <p>
+          Hier kannst du beschreiben, worum es auf deiner Webseite geht und welche
+          Leistungen oder Inhalte du anbietest.
+        </p>
+      </div>
+    </section>
+
+    <section class="section" id="kontakt">
+      <div class="container">
+        <h2>Kontakt</h2>
+        <p>Schreibe uns eine Nachricht. Wir melden uns schnell zurueck.</p>
+
+        <form class="contact-form" action="kontakt.php" method="post">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Name</label>
+              <input id="name" name="name" type="text" required>
+            </div>
+            <div class="form-group">
+              <label for="email">E-Mail</label>
+              <input id="email" name="email" type="email" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="betreff">Betreff</label>
+            <input id="betreff" name="betreff" type="text" required>
+          </div>
+
+          <div class="form-group">
+            <label for="nachricht">Nachricht</label>
+            <textarea id="nachricht" name="nachricht" rows="6" required></textarea>
+          </div>
+
+          <button class="button button-primary" type="submit">Nachricht senden</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 Meine neue Webseite</p>
+    </div>
+  </footer>
+</body>
+</html>
