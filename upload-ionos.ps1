@@ -100,7 +100,7 @@ $securePassword = Get-SecurePassword -PasswordFilePath $passwordFile
 $plainPassword = Convert-SecureToPlainText -SecureValue $securePassword
 
 try {
-  $files = @("index.html", "styles.css", "web.config", "kontakt.php")
+  $files = @("index.html", "styles.css", "web.config", "kontakt.php", "pdmerecht/index.html")
   $lastCurlExitCode = 0
   $lastCurlOutput = ""
   foreach ($file in $files) {
