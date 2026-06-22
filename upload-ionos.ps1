@@ -2,6 +2,7 @@ param(
   [string]$FtpHost = "access1085251142.webspace-data.io",
   [string]$User = "u124210619",
   [string]$RemoteDir = "wwwroot",
+  [switch]$UseSftp,
   [switch]$UseFtps = $true,
   [switch]$AllowInsecureTls,
   [switch]$SavePassword,
@@ -90,26 +91,41 @@ function Convert-SecureToPlainText {
 Write-Host "IONOS Upload gestartet" -ForegroundColor Cyan
 Write-Host "Server: verbunden"
 Write-Host "Zielpfad: /$RemoteDir"
-
-$enteredUser = Read-Host "FTP-Benutzername (Enter fuer '$User')"
-if (-not [string]::IsNullOrWhiteSpace($enteredUser)) {
-  $User = $enteredUser
-}
 Write-Host "FTP-Benutzer: $User"
 $securePassword = Get-SecurePassword -PasswordFilePath $passwordFile
 $plainPassword = Convert-SecureToPlainText -SecureValue $securePassword
 
 try {
-  $files = @("index.html", "styles.css", "web.config", "kontakt.php", "pdmerecht/index.html")
+  $files = @(
+    "index.html",
+    "styles.css",
+    "web.config",
+    "kontakt.php",
+    "pdm-erecht/index.html",
+    "pdmerecht/erecht24.php",
+    "pdmerecht/check-api-key.php"
+  )
   $lastCurlExitCode = 0
   $lastCurlOutput = ""
   foreach ($file in $files) {
     Assert-FileExists -Path $file
   }
 
-  $scheme = "ftp"
-  Write-Host "Protokoll: FTPS (explizit)"
+  if ($UseFtps) {
+    $scheme = "ftp"
+    Write-Host "Protokoll: FTPS (explizit)"
+  }
+  else {
+    $scheme = "sftp"
+    Write-Host "Protokoll: SFTP"
+  }
   Write-Host "Port: $Port"
+  if (-not $UseFtps) {
+    $curlVersion = (& curl.exe --version 2>$null) -join "`n"
+    if ($curlVersion -notmatch "(?im)^Protocols:.*\bsftp\b") {
+      throw "Das lokale curl unterstuetzt kein SFTP. Nutze FTPS: .\upload-ionos.ps1 -UseFtps -Port 21"
+    }
+  }
   Write-Host ("Netzwerk: " + ($(if ($ForceIpv4) { "IPv4" } else { "Standard (IPv4/IPv6)" })))
 
   $normalizedRemoteDir = $RemoteDir.Trim("/")
@@ -124,7 +140,6 @@ try {
       "--silent",
       "--show-error",
       "--fail",
-      "--create-dirs",
       "--user", $auth,
       "-T", $file,
       $target
@@ -134,7 +149,13 @@ try {
       $curlArgs += "-4"
     }
 
-    $curlArgs += "--ftp-pasv"
+    if ($UseFtps) {
+      $curlArgs += "--ftp-create-dirs"
+      $curlArgs += "--ftp-pasv"
+    }
+    else {
+      $curlArgs += "--create-dirs"
+    }
 
     if ($UseFtps) {
       $curlArgs += "--tlsv1.2"
@@ -171,7 +192,12 @@ catch {
   if ($lastCurlExitCode -eq 67 -or $lastCurlOutput -match "530") {
     Write-Host " - Login abgelehnt (530): FTP-Benutzer, FTP-Passwort und FTP-Rechte im IONOS-Panel pruefen."
     Write-Host " - Gespeichertes Passwort loeschen und neu eingeben: Remove-Item .\ionos.ftp.pass.sec"
-    Write-Host " - Danach erneut testen: .\upload-ionos.ps1 -UseFtps -Port 21"
+    if ($UseFtps) {
+      Write-Host " - Danach erneut testen: .\upload-ionos.ps1 -UseFtps -Port 21"
+    }
+    else {
+      Write-Host " - Danach erneut testen: .\upload-ionos.ps1 -UseSftp -Port 22"
+    }
     Write-Host " - Hinweis: Der Fehler tritt vor dem Dateiupload auf, der Remote-Pfad ist hier nicht die Ursache."
   }
   elseif ($lastCurlExitCode -eq 35 -or $lastCurlOutput -match "SEC_E_INVALID_TOKEN") {
@@ -180,6 +206,7 @@ catch {
   }
   else {
     Write-Host " - Explizites FTPS: .\upload-ionos.ps1 -UseFtps -Port 21"
+    Write-Host " - SFTP: .\upload-ionos.ps1 -UseSftp -Port 22"
     Write-Host " - Zielordner pruefen: -RemoteDir wwwroot"
   }
   throw
